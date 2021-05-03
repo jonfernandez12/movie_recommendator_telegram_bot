@@ -1,0 +1,28 @@
+U: Hola, Hello, Buenos días, Buenaa, Qué tal, JonBot (cualquier cosa)
+-- se activa
+I: Hola! Cómo te llamas?
+U: (Nombre)
+I: Hola Jon, cómo te encuentras el día de hoy?
+U: Bien /Mal /Quiero ver una peli o una serie.
+I: Buenos días (Nombre), qué tipo de películas o series te gustan?
+U: Pues quiero ver una serie (o película) / Te dice el género
+I: ENSEÑAR OPCIONES CÓMO BOTFATHER
+U: (Elige)
+I: De qué año?
+U: (Elige)
+I: En qué idioma?
+
+
+
+
+
+
+
+Bye bye, adios, Gracias
+-- se desactiva
+
+
+Qué tal te encuentras hoy?
+-- Bien, mal cansado, activo, enérgetico, motivado
+>se despliguean las ramas.
+
