@@ -30,3 +30,21 @@ class Film(Base):
     def __repr__(self):
         return "<Film(id='{}',title='{}', year='{}', link='{}', rating='{}', runtime'{}', genre'{}', plot'{}', status'{}')>"\
                 .format(self.id, self.title, self.year, self.link, self.rating, self.runtime, self.genre, self.plot, self.status)
+    
+
+class User(Base):
+    __tablename__ = 'users'
+    id = Column(String, primary_key=True)
+    name = Column(String)
+    filmId = Column(String)
+
+
+    def __init__(self, id, name):
+        self.id = id
+        self.name = name
+        self.filmId = ""
+        super(User, self).__init__()
+
+    def __repr__(self):
+        return "<user(id='{}', name'{}', filmId='{}')>"\
+                .format(self.id, self.name, self.filmId)

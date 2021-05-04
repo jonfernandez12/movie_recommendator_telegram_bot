@@ -5,7 +5,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 import csv
 import json
-from models import Base, Film
+from models import Base, Film, User
 
 
 CSV_FILE_PATH = os.getcwd()+'/movie_data.csv'
@@ -17,7 +17,7 @@ def getCredentials():
     conn_string = conf["DATABASE_URI"]
     return conn_string
 
-def insertInDB(db_session):
+def insertFilms(db_session):
     with open(CSV_FILE_PATH) as f:
         reader = csv.reader(f, delimiter=",")
         next(reader)
@@ -38,14 +38,30 @@ def insertInDB(db_session):
             #print(s.query(Film).first())
 conn = None
 
-# connect to the PostgreSQL server
-engine = create_engine(getCredentials())
-Base.metadata.drop_all(engine)
-Base.metadata.create_all(engine)
-Session = sessionmaker(bind=engine)
-db_session = Session()
-insertInDB(db_session)
-#r=db_session.query(Film).filter(Film.genre.ilike('Action%')).all()    
-#print("filter_by:", r.)
-#print(db_session.query(Film))
 
+def upsertUsers(db_session, user):
+    id = user["id"]
+    print(id)
+    name = user["first_name"]
+    newUser = User(id, name)
+    try:
+        db_session.add(newUser)
+        db_session.commit()
+    except Exception:
+        print(Exception)
+
+
+def getConnection():
+# connect to the PostgreSQL server
+    engine = create_engine(getCredentials())
+    #Base.metadata.drop_all(engine)
+    #Base.metadata.create_all(engine)
+    Session = sessionmaker(bind=engine)
+    db_session = Session()
+    #insertFilms(db_session)
+    return db_session
+    #r=db_session.query(Film).filter(Film.genre.ilike('Action%')).all()    
+    #print("filter_by:", r.)
+    #print(db_session.query(Film))
+
+getConnection()

@@ -3,6 +3,7 @@ import dialogflow
 import logging
 import requests
 import json
+import psql
 from google.api_core.exceptions import InvalidArgument
 
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
@@ -11,7 +12,6 @@ from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
 logger = logging.getLogger(__name__)
-
 
 '''
 def start(update, context):
@@ -41,14 +41,18 @@ def start(update, context):
 
 
 def echo(update, context):
-    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = '/home/jon/Documents/Chatbot/chatbot/private_key.json'
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = '/home/jon/Documents/Chatbot/Chatbot/private_key.json'
 
     DIALOGFLOW_PROJECT_ID = 'jonbot-sqoh'
     DIALOGFLOW_LANGUAGE_CODE = 'es'
     SESSION_ID = 'me'
-    print(context)
-    text_to_be_analyzed = update.message.text
 
+    text_to_be_analyzed = update.message.text
+    user=update.message.from_user
+    db_session = psql.getConnection()
+    psql.upsertUsers(db_session,user)
+
+    #Dialog Flow cliente
     session_client = dialogflow.SessionsClient()
     session = session_client.session_path(DIALOGFLOW_PROJECT_ID, SESSION_ID)
     text_input = dialogflow.types.TextInput(text=text_to_be_analyzed, language_code=DIALOGFLOW_LANGUAGE_CODE)
@@ -62,7 +66,12 @@ def echo(update, context):
     print("Detected intent:", response.query_result.intent.display_name)
     print("Detected intent confidence:", response.query_result.intent_detection_confidence)
     print("Fulfillment text:", response.query_result.fulfillment_text)
-    update.message.reply_text(response.query_result.fulfillment_text)
+
+    if (response.query_result.intent.display_name=="Hola"):
+        update.message.reply_text('¡Hola '+user["first_name"]+"! "+response.query_result.fulfillment_text)
+    else if response.query_result.intent.display_name==
+    else: update.message.reply_text(response.query_result.fulfillment_text)
+
 
 
 def main():
