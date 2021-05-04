@@ -21,6 +21,8 @@ string2 = 'Genre'
 
 def getQueryValues(intents):
     values = []
+    print(type(intents))
+    print(intents[-1])
     intent = intents[-1]
     intent = intent.split("-")
     for i in intents:
@@ -34,15 +36,17 @@ def getQueryValues(intents):
             return values
     
 def getRespuesta(query):
+    print(query)
     respuesta = ("Título: "+query.title+"\n"+
                 "Fecha:"+query.year+"\n"+
                 "Resumen: "+query.plot+"\n"+
                 "Link: "+query.link)
     return respuesta
 
-def getQuery(intents):
+def getQuery(db_session,intents):
     values = getQueryValues(intents)
-    s=db_session.query(Film).filter(Film.genre.ilike('%'+values[0]+'%')).first()
+    s=db_session.query(Film).filter(Film.genre.ilike('%'+values[0]+'%')).filter(Film.year <= values[2]).filter(Film.year >= values[1]).order_by(Film.rating.asc()).first()
+    print(s)
     return s
 
 
@@ -58,7 +62,7 @@ def echo(update, context):
     db_session = psql.getConnection()
     psql.upsertUsers(db_session,user)
     db_session.close()
-    
+
     #Dialog Flow cliente
     session_client = dialogflow.SessionsClient()
     session = session_client.session_path(DIALOGFLOW_PROJECT_ID, SESSION_ID)
@@ -83,11 +87,11 @@ def echo(update, context):
         update.message.reply_text('¡Hola '+user["first_name"]+"! "+response.query_result.fulfillment_text)
 
     if (string in intent):#No populare
-        s=getQuery(db_session)
+        s=getQuery(db_session, intents)
         respuesta = getRespuesta(s)
         response.query_result.fulfillment_text=respuesta
     elif (string3 in intent):#populare
-        s=getQuery(db_session)
+        s=getQuery(db_session,intents)
         respuesta = getRespuesta(s)
         response.query_result.fulfillment_text=respuesta
     
