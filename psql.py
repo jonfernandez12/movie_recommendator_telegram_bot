@@ -54,14 +54,15 @@ def upsertUsers(db_session, user):
 def getConnection():
 # connect to the PostgreSQL server
     engine = create_engine(getCredentials())
-    #Base.metadata.drop_all(engine)
-    #Base.metadata.create_all(engine)
+    Base.metadata.drop_all(engine)
+    Base.metadata.create_all(engine)
     Session = sessionmaker(bind=engine)
     db_session = Session()
-    #insertFilms(db_session)
+    insertFilms(db_session)
     return db_session
     #r=db_session.query(Film).filter(Film.genre.ilike('Action%')).all()    
     #print("filter_by:", r.)
     #print(db_session.query(Film))
 
 getConnection()
+

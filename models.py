@@ -1,5 +1,6 @@
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String, Date
+from sqlalchemy.orm import relationship
+from sqlalchemy import Column, Integer, String, Date, ForeignKey
 
 Base = declarative_base()
 
@@ -14,6 +15,7 @@ class Film(Base):
     genre = Column(String)
     plot = Column(String)
     status = Column(Integer)
+    recomendation = relationship("Recomendation")
 
     def __init__(self, title, year, link, rating, runtime, genre, plot, status):        
         self.title = title
@@ -34,9 +36,28 @@ class Film(Base):
 
 class User(Base):
     __tablename__ = 'users'
-    id = Column(String, primary_key=True)
+    id = Column(Integer, primary_key=True)
     name = Column(String)
-    filmId = Column(String)
+    recomendation = relationship("Recomendation")
+
+
+    def __init__(self, id, name):
+        self.id = id
+        self.name = name
+        self.filmId = ""
+        super(User, self).__init__()
+
+    def __repr__(self):
+        return "<user(id='{}', name'{}', filmId='{}')>"\
+                .format(self.id, self.name, self.filmId)
+
+
+class Recomendation(Base):
+    __tablename__ = 'recomendations'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    userId = Column(Integer, ForeignKey('users.id'))
+    name = Column(String)
+    filmId = Column(Integer, ForeignKey('films.id'))
 
 
     def __init__(self, id, name):
