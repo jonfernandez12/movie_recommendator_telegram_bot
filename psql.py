@@ -41,28 +41,36 @@ conn = None
 
 def upsertUsers(db_session, user):
     id = user["id"]
-    print(id)
     name = user["first_name"]
     newUser = User(id, name)
-    try:
-        db_session.add(newUser)
-        db_session.commit()
-    except Exception:
-        print(Exception)
+    exists = db_session.query(User.id).filter_by(id=id).one()
+    if(not exists):
+        try:
+            db_session.add(newUser)
+            db_session.commit()
+            
+        except Exception:
+            print(Exception)
+    else: print("Existe")
+
+def insertRecomendation(db_session, rec):
+    db_session.add(rec)
+    db_session.commit()
+
 
 
 def getConnection():
 # connect to the PostgreSQL server
     engine = create_engine(getCredentials())
-    Base.metadata.drop_all(engine)
-    Base.metadata.create_all(engine)
+    #Base.metadata.drop_all(engine)
+    #Base.metadata.create_all(engine)
     Session = sessionmaker(bind=engine)
     db_session = Session()
-    insertFilms(db_session)
+    #insertFilms(db_session)
+
     return db_session
     #r=db_session.query(Film).filter(Film.genre.ilike('Action%')).all()    
     #print("filter_by:", r.)
     #print(db_session.query(Film))
 
-getConnection()
-
+#getConnection()

@@ -60,12 +60,12 @@ class Recomendation(Base):
     filmId = Column(Integer, ForeignKey('films.id'))
 
 
-    def __init__(self, id, name):
-        self.id = id
-        self.name = name
-        self.filmId = ""
+    def __init__(self, id, title, filmId):
+        self.userId = id
+        self.name = title
+        self.filmId = filmId
         super(User, self).__init__()
 
     def __repr__(self):
-        return "<user(id='{}', name'{}', filmId='{}')>"\
-                .format(self.id, self.name, self.filmId)
+        return "<user(id='{}',userId'{}', name'{}', filmId='{}')>"\
+                .format(self.id,self.userId,  self.name, self.filmId)

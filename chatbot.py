@@ -5,7 +5,8 @@ import requests
 import json
 import psql
 from google.api_core.exceptions import InvalidArgument
-
+from sqlalchemy.sql import select 
+from models import Film, User, Recomendation
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 
 # Enable logging
@@ -13,31 +14,36 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
                     level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-'''
-def start(update, context):
+intents=[]
+string = 'notPopular'
+string3 = 'Popular'
+string2 = 'Genre'
+
+def getQueryValues(intents):
+    values = []
+    intent = intents[-1]
+    intent = intent.split("-")
+    for i in intents:
+        if string2 in i:
+            genre = i.split("-")
+            startdate = intent[0]
+            enddate = intent[1]
+            values.append(genre[1].replace(" ",""))
+            values.append(startdate)
+            values.append(enddate)
+            return values
     
-    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = 'private_key.json'
+def getRespuesta(query):
+    respuesta = ("Título: "+query.title+"\n"+
+                "Fecha:"+query.year+"\n"+
+                "Resumen: "+query.plot+"\n"+
+                "Link: "+query.link)
+    return respuesta
 
-    DIALOGFLOW_PROJECT_ID = 'unaibot-rheo'
-    DIALOGFLOW_LANGUAGE_CODE = 'es'
-    SESSION_ID = 'me'
-    print(context)
-    text_to_be_analyzed = "agur"
-
-    session_client = dialogflow.SessionsClient()
-    session = session_client.session_path(DIALOGFLOW_PROJECT_ID, SESSION_ID)
-    text_input = dialogflow.types.TextInput(text=text_to_be_analyzed, language_code=DIALOGFLOW_LANGUAGE_CODE)
-    query_input = dialogflow.types.QueryInput(text=text_input)
-    try:
-        response = session_client.detect_intent(session=session, query_input=query_input)
-    except InvalidArgument:
-        raise
-
-    print("Query text:", response.query_result.query_text)
-    print("Detected intent:", response.query_result.intent.display_name)
-    print("Detected intent confidence:", response.query_result.intent_detection_confidence)
-    print("Fulfillment text:", response.query_result.fulfillment_text)
-    update.message.reply_text('jon guapo!')'''
+def getQuery(intents):
+    values = getQueryValues(intents)
+    s=db_session.query(Film).filter(Film.genre.ilike('%'+values[0]+'%')).first()
+    return s
 
 
 def echo(update, context):
@@ -51,12 +57,14 @@ def echo(update, context):
     user=update.message.from_user
     db_session = psql.getConnection()
     psql.upsertUsers(db_session,user)
-
+    db_session.close()
+    
     #Dialog Flow cliente
     session_client = dialogflow.SessionsClient()
     session = session_client.session_path(DIALOGFLOW_PROJECT_ID, SESSION_ID)
     text_input = dialogflow.types.TextInput(text=text_to_be_analyzed, language_code=DIALOGFLOW_LANGUAGE_CODE)
     query_input = dialogflow.types.QueryInput(text=text_input)
+
     try:
         response = session_client.detect_intent(session=session, query_input=query_input)
     except InvalidArgument:
@@ -66,12 +74,32 @@ def echo(update, context):
     print("Detected intent:", response.query_result.intent.display_name)
     print("Detected intent confidence:", response.query_result.intent_detection_confidence)
     print("Fulfillment text:", response.query_result.fulfillment_text)
+    
+    intent = response.query_result.intent.display_name
+    intents.append(intent)
 
-    if (response.query_result.intent.display_name=="Hola"):
+
+    if (intent=="Hola"):
         update.message.reply_text('¡Hola '+user["first_name"]+"! "+response.query_result.fulfillment_text)
-    else if response.query_result.intent.display_name==
-    else: update.message.reply_text(response.query_result.fulfillment_text)
 
+    if (string in intent):#No populare
+        s=getQuery(db_session)
+        respuesta = getRespuesta(s)
+        response.query_result.fulfillment_text=respuesta
+    elif (string3 in intent):#populare
+        s=getQuery(db_session)
+        respuesta = getRespuesta(s)
+        response.query_result.fulfillment_text=respuesta
+    
+    #db_session = psql.getConnection()
+    #s=db_session.query(Film).filter(Film.genre.ilike(intent+'%')).first()
+
+
+    #response.query_result.fulfillment_text = respuesta
+    update.message.reply_text(response.query_result.fulfillment_text)
+    #newRec = Recomendation(id,s.title,s.filmId)
+    #db_session.insertRecomendation(newRec)
+    #db_session.close()
 
 
 def main():
