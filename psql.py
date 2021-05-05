@@ -8,8 +8,8 @@ import json
 from models import Base, Film, User
 
 
-CSV_FILE_PATH = os.getcwd()+'/movie_data.csv'
-CONFIG_FILE_PATH = os.getcwd()+'/config.json'
+CSV_FILE_PATH = os.getcwd()+'/Chatbot/movie_data.csv'
+CONFIG_FILE_PATH = os.getcwd()+'/Chatbot/config.json'
 
 def getCredentials():
     with open(CONFIG_FILE_PATH, "r") as file:
@@ -51,7 +51,6 @@ def upsertUsers(db_session, user):
             
         except Exception:
             print(Exception)
-    else: print("Existe")
 
 def insertRecomendation(db_session, rec):
     db_session.add(rec)

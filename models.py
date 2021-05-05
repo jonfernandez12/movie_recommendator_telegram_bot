@@ -64,7 +64,7 @@ class Recomendation(Base):
         self.userId = id
         self.name = title
         self.filmId = filmId
-        super(User, self).__init__()
+        super(Recomendation, self).__init__()
 
     def __repr__(self):
         return "<user(id='{}',userId'{}', name'{}', filmId='{}')>"\

@@ -21,8 +21,6 @@ string2 = 'Genre'
 
 def getQueryValues(intents):
     values = []
-    print(type(intents))
-    print(intents[-1])
     intent = intents[-1]
     intent = intent.split("-")
     for i in intents:
@@ -36,22 +34,41 @@ def getQueryValues(intents):
             return values
     
 def getRespuesta(query):
-    print(query)
     respuesta = ("Título: "+query.title+"\n"+
-                "Fecha:"+query.year+"\n"+
+                "Fecha:"+str(query.year)+"\n"+
                 "Resumen: "+query.plot+"\n"+
                 "Link: "+query.link)
     return respuesta
 
-def getQuery(db_session,intents):
+def getQuery(db_session,intents, user):
     values = getQueryValues(intents)
-    s=db_session.query(Film).filter(Film.genre.ilike('%'+values[0]+'%')).filter(Film.year <= values[2]).filter(Film.year >= values[1]).order_by(Film.rating.asc()).first()
-    print(s)
-    return s
+    print(values)
+    print(db_session)
+    
+    s=db_session.query(Film).filter(Film.genre.ilike('%'+values[0]+'%')).filter(Film.year <= values[2]).filter(Film.year >= values[1]).order_by(Film.rating.asc()).all()
+    r=db_session.query(Recomendation).select(Recomendation.filmId).filter(Recomendation.userId==user.id)
+    print(r)
+    for film in s:
+        if(film.filmId != r):
+            return film
+        else:         
 
+    if(s is None):
+        s=db_session.query(Film).filter(Film.genre.ilike('%'+values[0]+'%')).order_by(Film.rating.asc()).all()
+        for film in s:
+            print(film)
+            if(film.filmId != r):
+                return film
+            else:  
+        
+        
+
+def insertRecomendation(user, film, db_session):
+    newRec = Recomendation(user.id,film.title,film.id)
+    psql.insertRecomendation(db_session, newRec)
 
 def echo(update, context):
-    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = '/home/jon/Documents/Chatbot/Chatbot/private_key.json'
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = os.getcwd()+'/Chatbot/private_key.json'
 
     DIALOGFLOW_PROJECT_ID = 'jonbot-sqoh'
     DIALOGFLOW_LANGUAGE_CODE = 'es'
@@ -61,7 +78,6 @@ def echo(update, context):
     user=update.message.from_user
     db_session = psql.getConnection()
     psql.upsertUsers(db_session,user)
-    db_session.close()
 
     #Dialog Flow cliente
     session_client = dialogflow.SessionsClient()
@@ -81,29 +97,27 @@ def echo(update, context):
     
     intent = response.query_result.intent.display_name
     intents.append(intent)
-
-
     if (intent=="Hola"):
         update.message.reply_text('¡Hola '+user["first_name"]+"! "+response.query_result.fulfillment_text)
 
-    if (string in intent):#No populare
-        s=getQuery(db_session, intents)
-        respuesta = getRespuesta(s)
+    elif (string in intent):#No populare
+        film=getQuery(db_session, intents,user)
+        respuesta = getRespuesta(film)
         response.query_result.fulfillment_text=respuesta
+        update.message.reply_text(response.query_result.fulfillment_text)
+        insertRecomendation(user,film,db_session)
+        intents.clear()
     elif (string3 in intent):#populare
-        s=getQuery(db_session,intents)
-        respuesta = getRespuesta(s)
+        film=getQuery(db_session, intents,user)
+        respuesta = getRespuesta(film)
         response.query_result.fulfillment_text=respuesta
-    
-    #db_session = psql.getConnection()
-    #s=db_session.query(Film).filter(Film.genre.ilike(intent+'%')).first()
+        update.message.reply_text(response.query_result.fulfillment_text)
+        insertRecomendation(user, film, db_session)
+        intents.clear()
+    elif response.query_result.fulfillment_text:
+        update.message.reply_text(response.query_result.fulfillment_text)
 
 
-    #response.query_result.fulfillment_text = respuesta
-    update.message.reply_text(response.query_result.fulfillment_text)
-    #newRec = Recomendation(id,s.title,s.filmId)
-    #db_session.insertRecomendation(newRec)
-    #db_session.close()
 
 
 def main():
