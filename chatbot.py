@@ -39,29 +39,34 @@ def getRespuesta(query):
                 "Resumen: "+query.plot+"\n"+
                 "Link: "+query.link)
     return respuesta
-
+def getUnRepeated(films, recs):
+    esta=0
+    for film in films:
+        for rec in recs:
+            print(str(film.id))
+            print(rec.filmId)
+            if(film.id == rec.filmId):
+                esta = 1
+        if esta == 0: 
+            return film
+        esta = 0
+        
 def getQuery(db_session,intents, user):
     values = getQueryValues(intents)
     print(values)
     print(db_session)
     
     s=db_session.query(Film).filter(Film.genre.ilike('%'+values[0]+'%')).filter(Film.year <= values[2]).filter(Film.year >= values[1]).order_by(Film.rating.asc()).all()
-    r=db_session.query(Recomendation).select(Recomendation.filmId).filter(Recomendation.userId==user.id)
+    r=db_session.query(Recomendation).filter(Recomendation.userId==user.id).all()
+    print(s)
     print(r)
-    for film in s:
-        if(film.filmId != r):
-            return film
-        else:         
-
     if(s is None):
         s=db_session.query(Film).filter(Film.genre.ilike('%'+values[0]+'%')).order_by(Film.rating.asc()).all()
-        for film in s:
-            print(film)
-            if(film.filmId != r):
-                return film
-            else:  
-        
-        
+        sun = getUnRepeated(s,r)
+        return sun
+    s = getUnRepeated(s,r)
+    return s
+
 
 def insertRecomendation(user, film, db_session):
     newRec = Recomendation(user.id,film.title,film.id)
