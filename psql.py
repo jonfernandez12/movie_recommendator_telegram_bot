@@ -29,6 +29,7 @@ def insertFilms(db_session):
             rating = i[5]
             runtime = i[6]
             genre = i[7]
+            genre = genre + ', Random'
             plot = i[11]
 
             newFilm = Film(title,year,link,rating,runtime,genre,plot,0)
@@ -43,7 +44,7 @@ def upsertUsers(db_session, user):
     id = user["id"]
     name = user["first_name"]
     newUser = User(id, name)
-    exists = db_session.query(User.id).filter_by(id=id).one()
+    exists = db_session.query(User.id).filter_by(id=id).all()
     if(not exists):
         try:
             db_session.add(newUser)
@@ -72,4 +73,5 @@ def getConnection():
     #print("filter_by:", r.)
     #print(db_session.query(Film))
 
-#getConnection()
+getConnection()
+

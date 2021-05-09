@@ -3,6 +3,7 @@ import dialogflow
 import logging
 import requests
 import json
+import random
 import psql
 from google.api_core.exceptions import InvalidArgument
 from sqlalchemy.sql import select 
@@ -51,22 +52,34 @@ def getUnRepeated(films, recs):
             return film
         esta = 0
         
-def getQuery(db_session,intents, user):
+def getQuery(db_session,intents, user, popu):
     values = getQueryValues(intents)
     print(values)
     print(db_session)
-    
-    s=db_session.query(Film).filter(Film.genre.ilike('%'+values[0]+'%')).filter(Film.year <= values[2]).filter(Film.year >= values[1]).order_by(Film.rating.asc()).all()
-    r=db_session.query(Recomendation).filter(Recomendation.userId==user.id).all()
-    print(s)
-    print(r)
-    if(s is None):
-        s=db_session.query(Film).filter(Film.genre.ilike('%'+values[0]+'%')).order_by(Film.rating.asc()).all()
-        sun = getUnRepeated(s,r)
-        return sun
-    s = getUnRepeated(s,r)
-    return s
-
+    if(popu):
+        s=db_session.query(Film).filter(Film.genre.ilike('%'+values[0]+'%')).filter(Film.year <= values[2]).filter(Film.year >= values[1]).order_by(Film.rating.asc()).all()
+        r=db_session.query(Recomendation).filter(Recomendation.userId==user.id).all()
+        print(s)
+        print(r)
+        if(not s):
+            s=db_session.query(Film).filter(Film.genre.ilike('%'+values[0]+'%')).order_by(Film.rating.asc()).all()
+            if(values[0]=='Random' or values[0]=='Rando'): sun = getUnRepeated(random.shuffle(s),r)
+            sun = getUnRepeated(s,r)
+            return sun
+        s = getUnRepeated(s,r)
+        return s
+    else:
+        s=db_session.query(Film).filter(Film.genre.ilike('%'+values[0]+'%')).filter(Film.year <= values[2]).filter(Film.year >= values[1]).order_by(Film.rating.desc()).all()
+        r=db_session.query(Recomendation).filter(Recomendation.userId==user.id).all()
+        print(s)
+        print(r)
+        if(not s):
+            s=db_session.query(Film).filter(Film.genre.ilike('%'+values[0]+'%')).order_by(Film.rating.desc()).all()
+            if(values[0]=='Random' or values[0]=='Rando'): sun = getUnRepeated(random.shuffle(s),r)
+            sun = getUnRepeated(s,r)
+            return sun
+        s = getUnRepeated(s,r)
+        return s
 
 def insertRecomendation(user, film, db_session):
     newRec = Recomendation(user.id,film.title,film.id)
@@ -106,14 +119,14 @@ def echo(update, context):
         update.message.reply_text('¡Hola '+user["first_name"]+"! "+response.query_result.fulfillment_text)
 
     elif (string in intent):#No populare
-        film=getQuery(db_session, intents,user)
+        film=getQuery(db_session, intents,user,False)
         respuesta = getRespuesta(film)
         response.query_result.fulfillment_text=respuesta
         update.message.reply_text(response.query_result.fulfillment_text)
         insertRecomendation(user,film,db_session)
         intents.clear()
     elif (string3 in intent):#populare
-        film=getQuery(db_session, intents,user)
+        film=getQuery(db_session, intents,user,True)
         respuesta = getRespuesta(film)
         response.query_result.fulfillment_text=respuesta
         update.message.reply_text(response.query_result.fulfillment_text)
