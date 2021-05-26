@@ -19,6 +19,8 @@ string = 'notPopular'
 string3 = 'Popular'
 string2 = 'Genre'
 
+
+prueba = "prueba"
 def getQueryValues(intents):
     values = []
     intent = intents[-1]
